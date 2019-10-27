@@ -1,7 +1,7 @@
 import os from 'os';
 import { Explorer } from './Explorer';
 import { ExplorerSync } from './ExplorerSync';
-import { loaders } from './loaders';
+import { getLoaders } from './getLoaders';
 import {
   Config,
   CosmiconfigResult,
@@ -80,13 +80,13 @@ function cosmiconfigSync(moduleName: string, options: OptionsSync = {}) {
 }
 
 // do not allow mutation of default loaders. Make sure it is set inside options
-const defaultLoaders = Object.freeze({
-  '.js': loaders.loadJs,
-  '.json': loaders.loadJson,
-  '.yaml': loaders.loadYaml,
-  '.yml': loaders.loadYaml,
-  noExt: loaders.loadYaml,
-} as const);
+// const defaultLoaders = Object.freeze({
+//   '.js': loaders.loadJs,
+//   '.json': loaders.loadJson,
+//   '.yaml': loaders.loadYaml,
+//   '.yml': loaders.loadYaml,
+//   noExt: loaders.loadYaml,
+// } as const);
 
 function normalizeOptions(
   moduleName: string,
@@ -115,23 +115,21 @@ function normalizeOptions(
     stopDir: os.homedir(),
     cache: true,
     transform: identity,
-    loaders: defaultLoaders,
+    // True loader defaults are applied dynamically by getLoaders.
+    loaders: {}
   };
 
-  const normalizedOptions: ExplorerOptions | ExplorerOptionsSync = {
+  const result: ExplorerOptions | ExplorerOptionsSync = {
     ...defaults,
     ...options,
-    loaders: {
-      ...defaults.loaders,
-      ...options.loaders,
-    },
   };
+  result.loaders = getLoaders(result);
 
-  return normalizedOptions;
+  return result;
 }
 
 const identity: TransformSync = function identity(x) {
   return x;
 };
 
-export { cosmiconfig, cosmiconfigSync, defaultLoaders };
+export { cosmiconfig, cosmiconfigSync };
